@@ -4,7 +4,7 @@ const helmet = require("helmet");
 const cors = require("cors");
 const morgan = require("morgan");
 const rateLimit = require("express-rate-limit");
-const connectDB = require("./config/db");
+const mongoose = require("mongoose");
 const authRoutes = require("./routes/auth");
 const logRoutes = require("./routes/logs");
 const statsRoutes = require("./routes/stats");
@@ -12,7 +12,16 @@ const userRoutes = require("./routes/users");
 const { errorHandler } = require("./middleware/errorMiddleware");
 
 const app = express();
-connectDB();
+
+// MongoDB connection
+const mongoURI = process.env.MONGODB_URI || 'mongodb://localhost:27017/notes-app';
+
+mongoose.connect(mongoURI, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+})
+.then(() => console.log('Connected to MongoDB'))
+.catch(err => console.error('MongoDB connection error:', err));
 
 app.use(helmet());
 app.use(cors());
