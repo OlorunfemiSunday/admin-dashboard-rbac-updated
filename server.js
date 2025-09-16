@@ -19,6 +19,32 @@ app.use(cors());
 app.use(express.json());
 app.use(morgan("dev"));
 
+// Root route
+app.get('/', (req, res) => {
+  res.json({
+    message: 'Notes API is running successfully!',
+    version: '1.0.0',
+    status: 'Active',
+    endpoints: {
+      auth: '/api/auth',
+      logs: '/api/logs',
+      stats: '/api/stats',
+      users: '/api/users'
+    },
+    timestamp: new Date().toISOString()
+  });
+});
+
+// Health check route
+app.get('/health', (req, res) => {
+  res.json({
+    status: 'OK',
+    uptime: process.uptime(),
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV || 'development'
+  });
+});
+
 // rate limiter for auth (login) routes
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
@@ -30,6 +56,15 @@ app.use("/api/auth", authLimiter, authRoutes);
 app.use("/api/logs", logRoutes);
 app.use("/api/stats", statsRoutes);
 app.use("/api/users", userRoutes);
+
+// 404 handler for undefined routes
+app.use('*', (req, res) => {
+  res.status(404).json({
+    error: 'Route not found',
+    message: `Cannot ${req.method} ${req.originalUrl}`,
+    availableEndpoints: ['/api/auth', '/api/logs', '/api/stats', '/api/users']
+  });
+});
 
 app.use(errorHandler);
 
